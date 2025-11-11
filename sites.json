@@ -1,0 +1,6 @@
+[
+  { "name": "AnimeFLV", "url": "https://www3.animeflv.net/", "image": "/images/animeflv.jpg" },
+  { "name": "TioAnime", "url": "https://tioanime.com/", "image": "/images/tioanime.jpg" },
+  { "name": "PelisPlusHD", "url": "https://pelisplushd.mx/", "image": "/images/pelisplus.jpg" },
+  { "name": "EntrePeliculasySeries", "url": "https://entrepeliculasyseries.nz/", "image": "/images/entrepeliculas.jpg" }
+]
