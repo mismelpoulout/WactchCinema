@@ -38,11 +38,17 @@ async function adblockApp(req, res) {
   }
 
   try {
+    // 🧠 Cabeceras más completas para evitar bloqueos tipo 'Forbidden'
     const response = await fetch(target, {
       headers: {
-        "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)",
-        "Accept-Language": "es-ES,es;q=0.9",
-        "Referer": target
+        "User-Agent":
+          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.1 Safari/537.36",
+        "Accept":
+          "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
+        "Accept-Language": "es-ES,es;q=0.9,en;q=0.8",
+        "Referer": "https://www.google.com/",
+        "Connection": "keep-alive",
+        "Cache-Control": "no-cache"
       }
     });
 
@@ -62,44 +68,50 @@ async function adblockApp(req, res) {
     const html = await response.text();
     const $ = cheerio.load(html);
 
-    // 🧹 Limpieza profunda de anuncios y rastreadores
+    // 🧹 Limpieza profunda de scripts, iframes y ads
     $("script, iframe, ins, noscript").each((_, el) => {
       const src = $(el).attr("src") || "";
       if (isBlocked(src)) $(el).remove();
     });
 
-    // Eliminar elementos típicos de anuncios por ID o clase
+    // 🧼 Eliminar elementos con IDs o clases relacionados con anuncios
     $("[id*='ad'], [class*='ad'], [class*='banner'], [class*='sponsor'], [class*='popup']").remove();
 
-    // 🚫 Eliminar ventanas emergentes o modales intrusivos
+    // 🚫 Eliminar overlays y ventanas emergentes molestas
     $("div[style*='position: fixed'], div[style*='position: absolute']").each((_, el) => {
       const zIndex = $(el).css("z-index");
       if (zIndex && parseInt(zIndex) > 1000) $(el).remove();
     });
 
-    // ⚙️ Corrige rutas relativas para que carguen correctamente
+    // 🧩 Corrige rutas relativas (CSS, imágenes, enlaces)
     const baseUrl = new URL(target);
     $("head").prepend(`<base href="${baseUrl.origin}/">`);
 
-    // 🧠 Eliminar bloqueos por “x-frame-options”
+    // 🧠 Eliminar restricciones de seguridad
     $("meta[http-equiv='X-Frame-Options']").remove();
     $("meta[http-equiv='Content-Security-Policy']").remove();
 
-    // 🎨 Ajuste opcional de estilo (oscuro y limpio)
+    // 🎨 Tema oscuro limpio y tipografía moderna
     $("head").append(`
       <style>
+        * { box-sizing: border-box; }
         body {
           background-color: #0a0a0a !important;
-          color: #f0f0f0 !important;
-          font-family: system-ui, sans-serif;
+          color: #e6e6e6 !important;
+          font-family: "Inter", system-ui, sans-serif;
+          margin: 0;
+          padding: 0;
         }
-        a { color: #58a6ff !important; }
+        a { color: #58a6ff !important; text-decoration: none; }
+        a:hover { text-decoration: underline; }
         header, footer, [id*="ad"], [class*="ad"], [class*="banner"], [class*="popup"] {
           display: none !important;
         }
+        img, video { max-width: 100%; height: auto; border-radius: 8px; }
       </style>
     `);
 
+    // ✅ Enviar contenido limpio
     const cleanedHtml = $.html();
     res.setHeader("Content-Type", "text/html; charset=utf-8");
     res.send(cleanedHtml);
